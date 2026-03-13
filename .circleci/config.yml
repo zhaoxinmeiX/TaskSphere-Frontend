@@ -1,0 +1,37 @@
+version: 2.1
+jobs:
+  build_and_push_frontend:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: true
+    steps:
+      - checkout
+
+      - run:
+          name:  Docker Buildx
+          command: |
+            docker run --privileged --rm tonistiigi/binfmt --install all
+            docker buildx create --use --name multi-platform-builder
+
+      - run:
+          name: build push
+          command: |
+            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            
+            VERSION="v0.0.${CIRCLE_BUILD_NUM}"
+            IMAGE_NAME="zhaoxinmei/circleci-tasksphere-frontend"
+            
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              -t $IMAGE_NAME:$VERSION \
+              -t $IMAGE_NAME:latest \
+              --push .
+
+workflows:
+  version: 2
+  frontend_pipeline:
+    jobs:
+      - build_and_push_frontend:
+          filters:
+            branches:
+              only: main
