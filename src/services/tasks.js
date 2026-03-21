@@ -20,12 +20,12 @@ export const createTask = async (taskData) => {
   }
 };
 
-export const updateTaskStatus = async (taskId, status) => {
+export const updateTask = async (taskId, taskData) => {
   try {
-    const response = await api.patch(`/tasks/${taskId}/update/`, { status });
+    const response = await api.patch(`/tasks/${taskId}/update/`, taskData);
     return response.data;
   } catch (error) {
-    console.error('Error updating task status:', error);
+    console.error('Error updating task:', error);
     throw error;
   }
 };

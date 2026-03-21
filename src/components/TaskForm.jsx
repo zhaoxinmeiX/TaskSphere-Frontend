@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { createTask } from '../services/tasks';
 import './TaskForm.css';
 
-function TaskForm({ onTaskCreated }) {
+function TaskForm({ onTaskCreated, task = null, isEdit = false }) {
   const [formData, setFormData] = useState({
-    title: '',
-    description: ''
+    title: task?.title || '',
+    description: task?.description || ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -24,15 +24,19 @@ function TaskForm({ onTaskCreated }) {
     setError('');
 
     try {
-      const newTask = await createTask(formData);
-      onTaskCreated(newTask);
-      setFormData({
-        title: '',
-        description: ''
-      });
+      if (isEdit) {
+        onTaskCreated(formData);
+      } else {
+        const newTask = await createTask(formData);
+        onTaskCreated(newTask);
+        setFormData({
+          title: '',
+          description: ''
+        });
+      }
     } catch (err) {
-      setError('Failed to create task. Please try again.');
-      console.error('Task creation error:', err);
+      setError(isEdit ? 'Failed to update task. Please try again.' : 'Failed to create task. Please try again.');
+      console.error('Task error:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -72,9 +76,9 @@ function TaskForm({ onTaskCreated }) {
           <button
             type="submit"
             disabled={isSubmitting || !formData.title}
-            className="submit-button"
+            className={`submit-button ${isEdit ? 'edit-mode' : 'create-mode'}`}
           >
-            {isSubmitting ? 'Creating...' : 'Create Task'}
+            {isSubmitting ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Task' : 'Create Task')}
           </button>
         </div>
       </form>
