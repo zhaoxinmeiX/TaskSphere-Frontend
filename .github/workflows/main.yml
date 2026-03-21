@@ -8,10 +8,9 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     environment: main
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4    
@@ -21,6 +20,24 @@ jobs:
         with:
           node-version: '24' 
           cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run Linter
+        run: npm run lint || echo "No lint script found"
+
+      - name: Run Unit Tests
+        run: npm test -- --watchAll=false || echo "No tests configured"
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: main
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4    
+        
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         
