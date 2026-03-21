@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getTasks, updateTaskStatus } from '../services/tasks';
+import { getTasks, updateTask } from '../services/tasks';
 import TaskForm from './TaskForm';
 import './TaskList.css';
 
@@ -9,6 +9,7 @@ function TaskList() {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -32,7 +33,7 @@ function TaskList() {
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
-      const updatedTask = await updateTaskStatus(taskId, newStatus);
+      const updatedTask = await updateTask(taskId, { status: newStatus });
       setTasks(prev => prev.map(task => 
         task.id === taskId ? updatedTask : task
       ));
@@ -40,6 +41,26 @@ function TaskList() {
     } catch (error) {
       console.error('Failed to update task status:', error);
     }
+  };
+
+  const handleTaskEdit = (task) => {
+    setEditingTask(task);
+  };
+
+  const handleTaskUpdate = async (taskId, taskData) => {
+    try {
+      const updatedTask = await updateTask(taskId, taskData);
+      setTasks(prev => prev.map(task => 
+        task.id === taskId ? updatedTask : task
+      ));
+      setEditingTask(null);
+    } catch (error) {
+      console.error('Failed to update task:', error);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingTask(null);
   };
 
   const toggleDropdown = (taskId) => {
@@ -129,14 +150,26 @@ function TaskList() {
                   )}
                 </div>
               </div>
-              <div style={{ paddingRight: '100px' }}>
-                <h3 className="task-title">{task.title}</h3>
+              <div className="task-card-content">
+                <div className="task-header">
+                  <h3 className="task-title">{task.title}</h3>
+                </div>
                 {task.description && (
                   <p className="task-description">{task.description}</p>
                 )}
-              </div>
-              <div className="task-meta">
-                <small>Created: {new Date(task.created_at).toLocaleDateString()}</small>
+                
+                <div className="task-footer">
+                  <span className="task-meta">
+                    {new Date(task.created_at).toLocaleDateString()}
+                  </span>
+                  <button 
+                    className="edit-button-clean" 
+                    onClick={() => handleTaskEdit(task)}
+                    title="Edit task"
+                  >
+                    <span>✏️</span> Edit
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -151,6 +184,22 @@ function TaskList() {
               <button className="modal-close" onClick={closeModal}>×</button>
             </div>
             <TaskForm onTaskCreated={handleTaskCreated} />
+          </div>
+        </div>
+      )}
+
+      {editingTask && (
+        <div className="modal-overlay" onClick={handleEditCancel}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit Task</h3>
+              <button className="modal-close" onClick={handleEditCancel}>×</button>
+            </div>
+            <TaskForm 
+              task={editingTask}
+              onTaskCreated={(updatedTask) => handleTaskUpdate(editingTask.id, updatedTask)}
+              isEdit={true}
+            />
           </div>
         </div>
       )}
