@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { logoutAccount } from '../services/auth';
+import TaskList from '../components/TaskList';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -29,11 +30,7 @@ function Dashboard() {
       </header>
       
       <section className="dashboard-content">
-        <h2>Welcome to TaskSphere!</h2>
-        <p>You have successfully logged in to your account.</p>
-        <div className="dashboard-placeholder">
-          <p>Dashboard content will be implemented here.</p>
-        </div>
+        <TaskList />
       </section>
     </main>
   );
