@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { getTasks } from '../services/tasks';
+import TaskForm from './TaskForm';
 import './TaskList.css';
 
 function TaskList() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -13,7 +15,7 @@ function TaskList() {
         const tasksData = await getTasks();
         setTasks(tasksData);
         setLoading(false);
-      } catch (err) {
+      } catch {
         setError('Failed to load tasks. Please try again later.');
         setLoading(false);
       }
@@ -22,69 +24,65 @@ function TaskList() {
     fetchTasks();
   }, []);
 
-  const getStatusColor = (status) => {
-    if (!status) return 'status-default'; // Handle undefined or null status
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return 'status-completed';
-      case 'in progress':
-        return 'status-in-progress';
-      case 'pending':
-        return 'status-pending';
-      default:
-        return 'status-default';
-    }
+  const handleTaskCreated = (newTask) => {
+    setTasks(prev => [newTask, ...prev]);
+    setIsModalOpen(false);
   };
 
-  if (loading) {
-    return (
-      <div className="task-list-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading tasks...</p>
-      </div>
-    );
-  }
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
-  if (error) {
-    return (
-      <div className="task-list-error">
-        <p>{error}</p>
-      </div>
-    );
-  }
-
-  if (tasks.length === 0) {
-    return (
-      <div className="task-list-empty">
-        <h3>No tasks found</h3>
-        <p>You don't have any tasks yet. Start by creating a new task!</p>
-      </div>
-    );
-  }
-
+  
   return (
     <div className="task-list">
-      <h2>Your Tasks</h2>
-      <div className="task-grid">
-        {tasks.map((task) => (
-          <div key={task.id} className="task-card">
-            <div className="task-header">
-              <h3 className="task-title">{task.title}</h3>
-              <span className={`task-status ${getStatusColor(task.status)}`}>
-                {task.status || 'No Status'}
-              </span>
-            </div>
-            {task.description && (
-              <p className="task-description">{task.description}</p>
-            )}
-            {task.due_date && (
-              <div className="task-due-date">
-                <small>Due: {new Date(task.due_date).toLocaleDateString()}</small>
-              </div>
-            )}
-          </div>
-        ))}
+      <div className="task-list-header">
+        <h2>Your Tasks</h2>
+        <button className="create-task-button" onClick={openModal}>
+          + Create Task
+        </button>
       </div>
+
+      {loading ? (
+        <div className="task-list-loading">
+          <div className="loading-spinner"></div>
+          <p>Loading tasks...</p>
+        </div>
+      ) : error ? (
+        <div className="task-list-error">
+          <p>{error}</p>
+        </div>
+      ) : tasks.length === 0 ? (
+        <div className="task-list-empty">
+          <h3>No tasks found</h3>
+          <p>You don't have any tasks yet. Start by creating a new task!</p>
+        </div>
+      ) : (
+        <div className="task-grid">
+          {tasks.map((task) => (
+            <div key={task.id} className="task-card">
+              <h3 className="task-title">{task.title}</h3>
+              {task.description && (
+                <p className="task-description">{task.description}</p>
+              )}
+              <div className="task-meta">
+                <small>Created: {new Date(task.created_at).toLocaleDateString()}</small>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Create New Task</h3>
+              <button className="modal-close" onClick={closeModal}>×</button>
+            </div>
+            <TaskForm onTaskCreated={handleTaskCreated} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
