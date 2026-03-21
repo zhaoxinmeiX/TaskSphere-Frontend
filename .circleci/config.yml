@@ -6,7 +6,7 @@ orbs:
 jobs:
   test_frontend:
     docker:
-      - image: cimg/node:20.0
+      - image: cimg/node:22.11.0
     steps:
       - checkout
       - node/install-packages:
