@@ -16,7 +16,7 @@ jobs:
           command: npm run lint || echo "No lint script found"
       - run:
           name: Run Unit Tests
-          command: npm test -- --watchAll=false
+          command: npm test
 
   build_and_push_frontend:
     machine:
