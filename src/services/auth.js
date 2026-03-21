@@ -10,3 +10,7 @@ export const loginAccount = async ({ username, password }) => {
   return response.data;
 };
 
+export const logoutAccount = () => {
+  localStorage.removeItem('token');
+};
+
