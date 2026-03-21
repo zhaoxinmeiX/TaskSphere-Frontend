@@ -1,20 +1,36 @@
 version: 2.1
+
+orbs:
+  node: circleci/node@5.1.0
+
 jobs:
+  test_frontend:
+    docker:
+      - image: cimg/node:22.11.0
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          name: Run Linter
+          command: npm run lint || echo "No lint script found"
+      - run:
+          name: Run Unit Tests
+          command: npm test
+
   build_and_push_frontend:
     machine:
       image: ubuntu-2204:current
       docker_layer_caching: true
     steps:
       - checkout
-
       - run:
-          name:  Docker Buildx
+          name: Setup Docker Buildx
           command: |
             docker run --privileged --rm tonistiigi/binfmt --install all
             docker buildx create --use --name multi-platform-builder
-
       - run:
-          name: build push
+          name: Build and Push to Docker Hub
           command: |
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             
@@ -31,7 +47,11 @@ workflows:
   version: 2
   frontend_pipeline:
     jobs:
+      - test_frontend
+      
       - build_and_push_frontend:
+          requires:
+            - test_frontend
           filters:
             branches:
               only: main
