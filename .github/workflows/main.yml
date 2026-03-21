@@ -28,7 +28,7 @@ jobs:
         run: npm run lint || echo "No lint script found"
 
       - name: Run Unit Tests
-        run: npm test -- --watchAll=false || echo "No tests configured"
+        run: npm test || echo "No tests configured"
 
   build:
     needs: test
