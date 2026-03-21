@@ -9,3 +9,13 @@ export const getTasks = async () => {
     throw error;
   }
 };
+
+export const createTask = async (taskData) => {
+  try {
+    const response = await api.post('/tasks/create/', taskData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating task:', error);
+    throw error;
+  }
+};
