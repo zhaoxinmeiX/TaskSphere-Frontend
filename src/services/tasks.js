@@ -29,3 +29,12 @@ export const updateTask = async (taskId, taskData) => {
     throw error;
   }
 };
+
+export const deleteTask = async (taskId) => {
+  try {
+    await api.delete(`/tasks/${taskId}/delete/`);
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    throw error;
+  }
+};
