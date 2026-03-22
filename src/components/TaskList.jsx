@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getTasks, updateTask } from '../services/tasks';
+import { getTasks, updateTask, deleteTask } from '../services/tasks';
 import TaskForm from './TaskForm';
 import './TaskList.css';
 
@@ -10,6 +10,7 @@ function TaskList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, taskId: null });
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -61,6 +62,24 @@ function TaskList() {
 
   const handleEditCancel = () => {
     setEditingTask(null);
+  };
+
+  const handleTaskDelete = async (taskId) => {
+    setDeleteConfirm({ show: true, taskId });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteTask(deleteConfirm.taskId);
+      setTasks(prev => prev.filter(task => task.id !== deleteConfirm.taskId));
+      setDeleteConfirm({ show: false, taskId: null });
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({ show: false, taskId: null });
   };
 
   const toggleDropdown = (taskId) => {
@@ -162,13 +181,22 @@ function TaskList() {
                   <span className="task-meta">
                     {new Date(task.created_at).toLocaleDateString()}
                   </span>
-                  <button 
-                    className="edit-button-clean" 
-                    onClick={() => handleTaskEdit(task)}
-                    title="Edit task"
-                  >
-                    <span>✏️</span> Edit
-                  </button>
+                  <div className="task-actions">
+                    <button 
+                      className="edit-button-clean" 
+                      onClick={() => handleTaskEdit(task)}
+                      title="Edit task"
+                    >
+                      <span>✏️</span> Edit
+                    </button>
+                    <button 
+                      className="delete-button-clean" 
+                      onClick={() => handleTaskDelete(task.id)}
+                      title="Delete task"
+                    >
+                      <span>🗑️</span> Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -200,6 +228,24 @@ function TaskList() {
               onTaskCreated={(updatedTask) => handleTaskUpdate(editingTask.id, updatedTask)}
               isEdit={true}
             />
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm.show && (
+        <div className="modal-overlay" onClick={cancelDelete}>
+          <div className="modal-content confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon">⚠️</div>
+            <h3>Delete Task</h3>
+            <p>Are you sure you want to delete this task? This action cannot be undone.</p>
+            <div className="confirm-buttons">
+              <button className="confirm-btn cancel" onClick={cancelDelete}>
+                Cancel
+              </button>
+              <button className="confirm-btn delete" onClick={confirmDelete}>
+                Delete Task
+              </button>
+            </div>
           </div>
         </div>
       )}
